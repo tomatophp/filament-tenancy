@@ -19,6 +19,71 @@ after install your package please run this command
 php artisan filament-tenancy:install
 ```
 
+in your main central panel add this plugin
+
+```php
+use Tomatophp\FilamentTenancy\FilamentTenancyPlugin;
+
+->plugin(FilamentTenancyPlugin::make())
+
+```
+
+in your tenancy app panel add this plugin
+
+```php
+
+use Tomatophp\FilamentTenancy\FilamentTenancyAppPlugin;
+
+->plugin(FilamentTenancyAppPlugin::make())
+```
+
+now on your `config\database.php` add this code
+
+```php
+    ...
+    'connections' => [
+        'dynamic' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+        ...
+    ],  
+```
+now run config:cache
+
+```php
+php artisan config:cache
+```
+
+on your `bootstrap\app.php` add this middleware
+
+```php
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
+
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->group('universal', [
+        InitializeTenancyByDomain::class,
+        InitializeTenancyBySubdomain::class,
+    ]);
+})
+```
+
 ## Publish Assets
 
 you can publish config file by use this command

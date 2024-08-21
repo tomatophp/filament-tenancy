@@ -1,5 +1,11 @@
 <?php
 
 return [
-    //You config go here...
+    "central_domain" => env('CENTRAL_DOMAIN', 'localhost'),
+
+    "features" => [
+        "homepage" => true,
+        "auth" => true,
+        "impersonation" => true,
+    ]
 ];

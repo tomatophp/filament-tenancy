@@ -1,6 +1,6 @@
 <?php
 
-namespace Tomatophp\FilamentTenancy\Console;
+namespace TomatoPHP\FilamentTenancy\Console;
 
 use Illuminate\Console\Command;
 use TomatoPHP\ConsoleHelpers\Traits\RunCommand;
@@ -42,6 +42,6 @@ class FilamentTenancyInstall extends Command
         $this->yarnCommand(['build']);
         $this->artisanCommand(["migrate"]);
         $this->artisanCommand(["optimize:clear"]);
-        $this->info('filamentTenancy installed successfully.');
+        $this->info('Filament Tenancy installed successfully.');
     }
 }
