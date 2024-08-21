@@ -9,7 +9,7 @@ use Filament\Support\Exceptions\Halt;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Modules\Core\Models\Tenant;
+use TomatoPHP\FilamentTenancy\Models\Tenant;
 use Throwable;
 use function Filament\Support\is_app_url;
 
@@ -62,6 +62,33 @@ class CreateTenant extends CreateRecord
         }
 
         $redirectUrl = $this->getRedirectUrl();
+
+        $record = $this->record;
+
+        config(['database.connections.dynamic.database' => config('tenancy.database.prefix').$record->id. config('tenancy.database.suffix')]);
+        $user = DB::connection('dynamic')
+            ->table('users')
+            ->where('email', $record->email)
+            ->first();
+        if($user){
+            DB::connection('dynamic')
+                ->table('users')
+                ->where('email', $record->email)
+                ->update([
+                    "name" => $record->name,
+                    "email" => $record->email,
+                    "password" => $record->password,
+                ]);
+        }
+        else {
+            DB::connection('dynamic')
+                ->table('users')
+                ->insert([
+                    "name" => $record->name,
+                    "email" => $record->email,
+                    "password" => $record->password,
+                ]);
+        }
 
         $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
     }

@@ -13,7 +13,7 @@ class FilamentTenancyAppPlugin implements Plugin
 {
     public function getId(): string
     {
-        return 'filament-tenancy';
+        return 'filament-tenancy-app';
     }
 
     public function register(Panel $panel): void
@@ -23,13 +23,15 @@ class FilamentTenancyAppPlugin implements Plugin
             ->middleware([
                 PreventAccessFromCentralDomains::class,
                 RedirectIfInertiaMiddleware::class,
-                ApplyPanelColorsMiddleware::class,
             ])
             ->middleware([
                 'universal',
                 FilamentTenancyServiceProvider::TENANCY_IDENTIFICATION,
                 PreventAccessFromCentralDomains::class,
             ], isPersistent: true);
+
+        $domains = tenant()?->domains()->pluck('domain') ?? [];
+        $panel->domains($domains);
     }
 
     public function boot(Panel $panel): void

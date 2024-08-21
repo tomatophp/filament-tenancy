@@ -139,7 +139,7 @@ class FilamentTenancyServiceProvider extends ServiceProvider
         ], 'filament-tenancy-lang');
 
         //Register Routes
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+//        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
 
     }
 
@@ -153,22 +153,6 @@ class FilamentTenancyServiceProvider extends ServiceProvider
         $this->prepareLivewireForTenancy();
 
         FrameworkColumns::registerMacros();
-
-        if(config()->has('database.connections.dynamic')){
-            Event::listen(SyncedResourceChangedInForeignDatabase::class, function ($data){
-
-                config(['database.connections.dynamic.database' => $data->tenant->tenancy_db_name]);
-                DB::connection('dynamic')
-                    ->table('users')
-                    ->where('email', $data->model->email)
-                    ->update([
-                        "name" => $data->model->name,
-                        "email" => $data->model->email,
-                        "password" => $data->model->password,
-                        "data" => json_encode($data->model->data),
-                    ]);
-            });
-        }
 
         $this->loadViewComponentsAs('tomato', [
             ApplicationLogo::class

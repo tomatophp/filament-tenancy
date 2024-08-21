@@ -21,7 +21,7 @@ class TenantResource extends Resource
 {
     protected static ?string $model = Tenant::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
     public static function form(Form $form): Form
     {
@@ -41,6 +41,7 @@ class TenantResource extends Resource
                         ->disabled(fn($context) => $context !=='create')
                         ->unique(table: 'tenants', ignoreRecord: true),
                     Forms\Components\TextInput::make('domain')
+                        ->columnSpanFull()
                         ->label('Sub-Domain')
                         ->required()
                         ->visible(fn($context) => $context ==='create')
@@ -49,7 +50,7 @@ class TenantResource extends Resource
                         ->suffix(".".request()->getHost())
                     ,
                     Forms\Components\TextInput::make('email')->required()->email(),
-                    Forms\Components\TextInput::make('phone')->required()->tel(),
+                    Forms\Components\TextInput::make('phone')->tel(),
                     Forms\Components\TextInput::make('password')
                         ->label('Password')
                         ->password()
@@ -64,19 +65,10 @@ class TenantResource extends Resource
                         ->label('Password Confirmation')
                         ->password()
                         ->revealable(filament()->arePasswordsRevealable())
-                        ->required()
                         ->dehydrated(false),
-                    Forms\Components\ToggleButtons::make('packages')
-                        ->label('Plugins')
-                        ->multiple()
-                        ->inline()
-                        ->hint('Select the plugins you want to install')
-                        ->icons(collect(config('app.packages'))->pluck('icon', 'key')->toArray())
-                        ->view('components.packages')
-                        ->columnSpanFull()
-                        ->required()
-                        ->default(["filament-users"])
-                        ->options(collect(config('app.packages'))->pluck('label', 'key')->toArray()),
+                    Forms\Components\Toggle::make('is_active')
+                        ->label('Active')
+                        ->default(true),
                 ])->columns()
             ]);
     }
@@ -86,28 +78,52 @@ class TenantResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->description(function ($record){
+                        return "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/app';
+                    }),
             ])
             ->filters([
                 //
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('view')
+                    ->label('Open Tenant')
+                    ->tooltip('Open Tenant')
+                    ->iconButton()
+                    ->icon('heroicon-s-link')
+                    ->url(fn($record) => "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/'. filament('filament-tenancy')->panel)
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('login')
+                    ->visible(filament('filament-tenancy')->allowImpersonate)
+                    ->requiresConfirmation()
+                    ->label('Login To Tenat')
+                    ->color('warning')
+                    ->tooltip('Login To Tenat')
+                    ->iconButton()
+                    ->icon('heroicon-s-arrow-left-on-rectangle')
+                    ->action(function ($record){
+                        $token = tenancy()->impersonate($record, 1, '/app', 'web');
+
+                        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. $record->email);
+                    }),
                 Tables\Actions\Action::make('password')
-                    ->label(trans('filament-accounts::messages.accounts.actions.password'))
+                    ->requiresConfirmation()
+                    ->label("Change Password")
+                    ->tooltip("Change Password")
                     ->icon('heroicon-s-lock-closed')
+                    ->iconButton()
                     ->color('danger')
                     ->form([
                         Forms\Components\TextInput::make('password')
-                            ->label(trans('filament-accounts::messages.accounts.coulmns.password'))
+                            ->label("password")
                             ->password()
                             ->required()
                             ->confirmed()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('password_confirmation')
-                            ->label(trans('filament-accounts::messages.accounts.coulmns.password_confirmation'))
+                            ->label("password confirmation")
                             ->password()
                             ->required()
                             ->maxLength(255),
@@ -121,7 +137,16 @@ class TenantResource extends Resource
                             ->body('Account password changed successfully')
                             ->success()
                             ->send();
-                    })
+                    }),
+                Tables\Actions\EditAction::make()
+                    ->label('Edit')
+                    ->tooltip('Edit')
+                    ->iconButton(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Delete')
+                    ->tooltip('Delete')
+                    ->iconButton(),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

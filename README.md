@@ -1,12 +1,30 @@
 ![Screenshot](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/3x1io-tomato-tenancy.jpg)
 
-# Filament tenancy
+# Filament Tenancy
 
 [![Latest Stable Version](https://poser.pugx.org/tomatophp/filament-tenancy/version.svg)](https://packagist.org/packages/tomatophp/filament-tenancy)
 [![License](https://poser.pugx.org/tomatophp/filament-tenancy/license.svg)](https://packagist.org/packages/tomatophp/filament-tenancy)
 [![Downloads](https://poser.pugx.org/tomatophp/filament-tenancy/d/total.svg)](https://packagist.org/packages/tomatophp/filament-tenancy)
 
 Tenancy multi-database integration for FilamentPHP
+
+## Screenshots
+
+![Tenants](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/tenants.png)
+![Create](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/create.png)
+![Edit](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/edit.png)
+![Password](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/password.png)
+
+## Features
+
+- [x] Multi Database
+- [x] Create Tenant Resource
+- [x] Sync Tenant Resource
+- [x] Password Change
+- [x] Tenant Impersonate
+- [ ] Share Tenant Data
+- [ ] Custom Theme For Tenant
+- [ ] Livewire Component For Register New Tenant
 
 ## Installation
 
@@ -24,11 +42,17 @@ in your main central panel add this plugin
 ```php
 use Tomatophp\FilamentTenancy\FilamentTenancyPlugin;
 
-->plugin(FilamentTenancyPlugin::make())
+->plugin(FilamentTenancyPlugin::make()->panel('app'))
 
 ```
 
-in your tenancy app panel add this plugin
+now you need to create a panel for tenancy app
+
+```bash
+php artisan filament:panel
+```
+
+and make the name same as `->panel('app')`, in your tenancy app panel add this plugin
 
 ```php
 
@@ -83,6 +107,22 @@ use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
     ]);
 })
 ```
+
+## Allow Impersonate
+
+you can allow impersonate to tanent panel with 1 click by use this method on your plugin
+
+```php
+
+use Tomatophp\FilamentTenancy\FilamentTenancyPlugin;
+
+->plugin(
+    FilamentTenancyPlugin::make()
+        ->panel('app')
+        ->allowImpersonate()
+)
+```
+
 
 ## Publish Assets
 
