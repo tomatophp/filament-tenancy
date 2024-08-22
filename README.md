@@ -56,7 +56,7 @@ and make the name same as `->panel('app')`, in your tenancy app panel add this p
 
 ```php
 
-use Tomatophp\FilamentTenancy\FilamentTenancyAppPlugin;
+use TomatoPHP\FilamentTenancy\FilamentTenancyAppPlugin;
 
 ->plugin(FilamentTenancyAppPlugin::make())
 ```
@@ -114,7 +114,7 @@ you can allow impersonate to tanent panel with 1 click by use this method on you
 
 ```php
 
-use Tomatophp\FilamentTenancy\FilamentTenancyPlugin;
+use TomatoPHP\FilamentTenancy\FilamentTenancyPlugin;
 
 ->plugin(
     FilamentTenancyPlugin::make()
