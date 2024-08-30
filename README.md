@@ -40,7 +40,7 @@ php artisan filament-tenancy:install
 in your `.env` make sure you add a root user or a user have a permission to create database, then in your main central panel add this plugin
 
 ```php
-use Tomatophp\FilamentTenancy\FilamentTenancyPlugin;
+use TomatoPHP\FilamentTenancy\FilamentTenancyPlugin;
 
 ->plugin(FilamentTenancyPlugin::make()->panel('app'))
 
