@@ -37,7 +37,13 @@ after install your package please run this command
 php artisan filament-tenancy:install
 ```
 
-in your `.env` make sure you add a root user or a user have a permission to create database, then in your main central panel add this plugin
+in your `.env` add this
+
+```.env
+CENTRAL_DOMAIN=tomatophp.test
+```
+
+where `tomatophp.test` is your central domain, and make sure you add a root user or a user have a permission to create database, then in your main central panel add this plugin
 
 ```php
 use TomatoPHP\FilamentTenancy\FilamentTenancyPlugin;
