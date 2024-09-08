@@ -15,7 +15,7 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => array_filter(array_merge([env('APP_BASE_DOMAIN','')], explode(',',env('CENTRAL_DOMAINS','')))),
+    'central_domains' => array_filter(array_merge([env('CENTRAL_DOMAIN','')], explode(',',env('CENTRAL_DOMAINS','')))),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
