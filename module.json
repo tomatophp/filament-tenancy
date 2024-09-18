@@ -1,0 +1,29 @@
+{
+    "name": "FilamentTenancy",
+    "alias": "filament-tenancy",
+    "description": {
+        "ar": "قم بتعدد مستخدمين النظام بك ليكون لكل عميل قاعدة بيانات خاصة به",
+        "en": "Tenancy multi-database integration for FilamentPHP",
+        "gr": "Tenancy multi-database integration for FilamentPHP",
+        "sp": "Tenancy multi-database integration for FilamentPHP"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "TomatoPHP\\FilamentTenancy\\FilamentTenancyServiceProvider"
+    ],
+    "files": [],
+    "title": {
+        "ar": "إدارة التطبيقات",
+        "en": "Tenancy Multi-database",
+        "gr": "Tenancy Multi-database",
+        "sp": "Tenancy Multi-database"
+    },
+    "color": "#cc1448",
+    "icon": "heroicon-c-credit-card",
+    "placeholder": "https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/3x1io-tomato-tenancy.jpg",
+    "type": "plugin",
+    "version": "v1.0.4",
+    "github" : "https://github.com/tomatophp/filament-tenancy",
+    "docs" : "https://github.com/tomatophp/filament-tenancy"
+}
