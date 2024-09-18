@@ -24,5 +24,13 @@ return [
         "edit" => "Edit",
         "delete" => "Delete",
     ],
+    "domains" => [
+        "title" => "Domains",
+        "single" => "Domain",
+        "columns" => [
+            "domain" => "Domain",
+            "full" => "Full Domain",
+        ],
+    ]
 
 ];

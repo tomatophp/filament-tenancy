@@ -112,9 +112,13 @@ class TenantResource extends Resource
                     ->description(function ($record){
                         return "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/app';
                     }),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->sortable()
+                    ->label(trans('filament-tenancy::messages.columns.is_active'))
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label(trans('filament-tenancy::messages.columns.is_active'))
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
