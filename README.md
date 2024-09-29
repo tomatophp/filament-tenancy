@@ -8,6 +8,9 @@
 
 Tenancy multi-database integration for FilamentPHP
 
+> [!WARNING]  
+> We have a known problem with `route:cache` if you find a problem with multi-database connection from your tenant side you may face this problem just use `php artisan route:clear` and it will be fixed.
+
 ## Screenshots
 
 ![Tenants](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/tenants.png)
