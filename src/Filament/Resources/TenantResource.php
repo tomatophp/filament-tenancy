@@ -67,7 +67,7 @@ class TenantResource extends Resource
                         ->required()
                         ->visible(fn($context) => $context ==='create')
                         ->unique(table: 'domains',ignoreRecord: true)
-                        ->prefix('https://')
+                        ->prefix(request()->getScheme()."://")
                         ->suffix(".".request()->getHost())
                     ,
                     Forms\Components\TextInput::make('email')
@@ -110,7 +110,7 @@ class TenantResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label(trans('filament-tenancy::messages.columns.name'))
                     ->description(function ($record){
-                        return "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/app';
+                        return request()->getScheme()."://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/app';
                     }),
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->sortable()
@@ -127,7 +127,7 @@ class TenantResource extends Resource
                     ->tooltip(trans('filament-tenancy::messages.actions.view'))
                     ->iconButton()
                     ->icon('heroicon-s-link')
-                    ->url(fn($record) => "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/'. filament('filament-tenancy')->panel)
+                    ->url(fn($record) => request()->getScheme()."://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/'. filament('filament-tenancy')->panel)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('login')
                     ->label(trans('filament-tenancy::messages.actions.login'))
@@ -140,7 +140,7 @@ class TenantResource extends Resource
                     ->action(function ($record){
                         $token = tenancy()->impersonate($record, 1, '/app', 'web');
 
-                        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. $record->email);
+                        return redirect()->to(request()->getScheme()."://".$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. $record->email);
                     }),
                 Tables\Actions\Action::make('password')
                     ->label(trans('filament-tenancy::messages.actions.password'))
