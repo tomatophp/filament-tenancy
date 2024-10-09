@@ -32,7 +32,7 @@ class DomainsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('domain')
                     ->required()
                     ->label(trans('filament-tenancy::messages.domains.columns.domain'))
-                    ->prefix('http(s)://')
+                    ->prefix(request()->getScheme()."://")
                     ->suffix(".".request()->getHost())
                     ->maxLength(255),
             ]);
