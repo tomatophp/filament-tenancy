@@ -93,7 +93,7 @@ class AuthController extends Controller
 
             $token = tenancy()->impersonate($record, 1, '/app', 'web');
 
-            return redirect()->to('https://' . $record->domains[0]->domain . '.' . config('app.domain') . '/login/url?token=' . $token->token . '&email=' . $record->email);
+            return redirect()->to(request()->getScheme()."://" . $record->domains[0]->domain . '.' . config('app.domain') . '/login/url?token=' . $token->token . '&email=' . $record->email);
         }
         catch (\Exception $exception){
             Notification::make()
