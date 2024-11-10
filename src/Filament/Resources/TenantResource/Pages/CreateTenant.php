@@ -66,6 +66,7 @@ class CreateTenant extends CreateRecord
         $record = $this->record;
 
         config(['database.connections.dynamic.database' => config('tenancy.database.prefix').$record->id. config('tenancy.database.suffix')]);
+        DB::purge('dynamic');
         $user = DB::connection('dynamic')
             ->table('users')
             ->where('email', $record->email)
