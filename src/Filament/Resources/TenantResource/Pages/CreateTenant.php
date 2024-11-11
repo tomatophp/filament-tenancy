@@ -65,7 +65,16 @@ class CreateTenant extends CreateRecord
 
         $record = $this->record;
 
-        config(['database.connections.dynamic.database' => config('tenancy.database.prefix').$record->id. config('tenancy.database.suffix')]);
+        try {
+            $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+            config(['database.connections.dynamic.database' => $dbName]);
+            DB::purge('dynamic');
+
+            DB::connection('dynamic')->getPdo();
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to connect to tenant database: {$dbName}");
+        }
+
         $user = DB::connection('dynamic')
             ->table('users')
             ->where('email', $record->email)
