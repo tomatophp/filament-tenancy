@@ -140,7 +140,7 @@ class TenantResource extends Resource
                     ->action(function ($record){
                         $token = tenancy()->impersonate($record, 1, '/app', 'web');
 
-                        return redirect()->to(request()->getScheme()."://".$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. $record->email);
+                        return redirect()->to(request()->getScheme()."://".$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. urlencode($record->email));
                     }),
                 Tables\Actions\Action::make('password')
                     ->label(trans('filament-tenancy::messages.actions.password'))
