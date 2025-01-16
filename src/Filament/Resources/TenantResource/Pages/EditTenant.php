@@ -30,8 +30,8 @@ class EditTenant extends EditRecord
         $record = $this->getRecord();
 
         $updateData = [
-            "name" => $data['name'],
-            "email" => $data['email'],
+            'name' => $data['name'],
+            'email' => $data['email'],
         ];
 
         if (isset($data['password'])) {
@@ -39,8 +39,10 @@ class EditTenant extends EditRecord
         }
 
         try {
-            $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
-            config(['database.connections.dynamic.database' => $dbName]);
+            if (!config('filament-tenancy.single_database')) {
+                $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+                config(['database.connections.dynamic.database' => $dbName]);
+            }
             DB::purge('dynamic');
 
             DB::connection('dynamic')->getPdo();
@@ -50,21 +52,20 @@ class EditTenant extends EditRecord
 
         $user = DB::connection('dynamic')
             ->table('users')
-            ->where('email', $record->email)
-            ->first();
-        if ($user) {
-            DB::connection('dynamic')
-                ->table('users')
-                ->where('email', $record->email)
-                ->update([
-                    "name" => $data['name'],
-                    "email" => $data['email'],
-                ]);
-        } else {
-            DB::connection('dynamic')
-                ->table('users')
-                ->insert($updateData);
+            ->where('email', $record->email);
+
+        if (config('filament-tenancy.single_database')) {
+            $user = $user->where('tenant_id', $record->id);
+
+            $updateData['tenant_id'] = $record->id;
         }
+
+        $user->updateOrInsert(
+            [
+                'email' => $record->email,
+            ],
+            $updateData,
+        );
 
         return $data;
     }
