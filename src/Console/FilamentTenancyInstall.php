@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use TomatoPHP\ConsoleHelpers\Traits\HandleFiles;
 use TomatoPHP\ConsoleHelpers\Traits\RunCommand;
 
+use function Laravel\Prompts\select;
+
 class FilamentTenancyInstall extends Command
 {
     use RunCommand;
@@ -16,7 +18,7 @@ class FilamentTenancyInstall extends Command
      *
      * @var string
      */
-    protected $name = 'filament-tenancy:install';
+    protected $signature = 'filament-tenancy:install {--multiple} {--single}';
 
     /**
      * The console command description.
@@ -30,7 +32,6 @@ class FilamentTenancyInstall extends Command
         parent::__construct();
     }
 
-
     /**
      * Execute the console command.
      *
@@ -38,6 +39,19 @@ class FilamentTenancyInstall extends Command
      */
     public function handle()
     {
+        if (! $this->option('multiple') && ! $this->option('single')) {
+            $connectionType = select(
+                label: 'Which database connection type will you use?',
+                options: [
+                    'multiple' => 'Multiple Databases',
+                    'single' => 'Single Database',
+                ],
+                default: 'multiple',
+            );
+        } else {
+            $connectionType = $this->option('multiple') ? 'multiple' : 'single';
+        }
+
         $this->info('Publish Vendor Assets');
 
         $this->callSilent('optimize:clear');
@@ -45,7 +59,7 @@ class FilamentTenancyInstall extends Command
         $this->artisanCommand(["migrate"]);
 
         $this->copyFile(
-            __DIR__ .'/../../publish/config/tenancy.php',
+            $connectionType == 'multiple' ? __DIR__ .'/../../publish/config/tenancy.php' : __DIR__ .'/../../publish/config/single.tenancy.php',
             config_path('tenancy.php')
         );
 

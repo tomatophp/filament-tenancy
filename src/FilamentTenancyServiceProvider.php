@@ -25,11 +25,10 @@ class FilamentTenancyServiceProvider extends ServiceProvider
     /**
      * @return array
      */
-    public function events(): array
+    public function databaseEvents(): array
     {
         return [
             // Tenant events
-            Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
                 JobPipeline::make([
                     Jobs\CreateDatabase::class,
@@ -43,11 +42,6 @@ class FilamentTenancyServiceProvider extends ServiceProvider
                     return $event->tenant;
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
-            Events\SavingTenant::class => [],
-            Events\TenantSaved::class => [],
-            Events\UpdatingTenant::class => [],
-            Events\TenantUpdated::class => [],
-            Events\DeletingTenant::class => [],
             Events\TenantDeleted::class => [
                 JobPipeline::make([
                     Jobs\DeleteDatabase::class,
@@ -55,50 +49,27 @@ class FilamentTenancyServiceProvider extends ServiceProvider
                     return $event->tenant;
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
+        ];
+    }
 
-            // Domain events
-            Events\CreatingDomain::class => [],
-            Events\DomainCreated::class => [],
-            Events\SavingDomain::class => [],
-            Events\DomainSaved::class => [],
-            Events\UpdatingDomain::class => [],
-            Events\DomainUpdated::class => [],
-            Events\DeletingDomain::class => [],
-            Events\DomainDeleted::class => [],
-
-            // Database events
-            Events\DatabaseCreated::class => [],
-            Events\DatabaseMigrated::class => [],
-            Events\DatabaseSeeded::class => [],
-            Events\DatabaseRolledBack::class => [],
-            Events\DatabaseDeleted::class => [],
-
+    public function defaultEvents()
+    {
+        return [
             // Tenancy events
-            Events\InitializingTenancy::class => [],
             Events\TenancyInitialized::class => [
                 Listeners\BootstrapTenancy::class,
             ],
 
-            Events\EndingTenancy::class => [],
             Events\TenancyEnded::class => [
                 Listeners\RevertToCentralContext::class,
             ],
-
-            Events\BootstrappingTenancy::class => [],
-            Events\TenancyBootstrapped::class => [],
-            Events\RevertingToCentralContext::class => [],
-            Events\RevertedToCentralContext::class => [],
 
             // Resource syncing
             Events\SyncedResourceSaved::class => [
                 Listeners\UpdateSyncedResource::class,
             ],
-
-            // Fired only when a synced resource is changed in a different DB than the origin DB (to avoid infinite loops)
-            Events\SyncedResourceChangedInForeignDatabase::class => [],
         ];
     }
-
 
     public function register(): void
     {
@@ -115,13 +86,16 @@ class FilamentTenancyServiceProvider extends ServiceProvider
            __DIR__.'/../config/filament-tenancy.php' => config_path('filament-tenancy.php'),
         ], 'filament-tenancy-config');
 
-        //Register Migrations
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        if (!config('filament-tenancy.single_database')) {
+            //Register Migrations
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        //Publish Migrations
-        $this->publishes([
-           __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'filament-tenancy-migrations');
+            //Publish Migrations
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'filament-tenancy-migrations');
+        }
+
         //Register views
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'filament-tenancy');
 
@@ -161,7 +135,12 @@ class FilamentTenancyServiceProvider extends ServiceProvider
 
     protected function bootEvents()
     {
-        foreach ($this->events() as $event => $listeners) {
+        $events = !config('filament-tenancy.single_database', false)
+            ? array_merge($this->databaseEvents(), $this->defaultEvents())
+            : $this->defaultEvents();
+
+
+        foreach ($events as $event => $listeners) {
             foreach ($listeners as $listener) {
                 if ($listener instanceof JobPipeline) {
                     $listener = $listener->toListener();

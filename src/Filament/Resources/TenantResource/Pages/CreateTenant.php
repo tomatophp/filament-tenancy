@@ -3,9 +3,7 @@
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
 use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Support\Exceptions\Halt;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -66,8 +64,10 @@ class CreateTenant extends CreateRecord
         $record = $this->record;
 
         try {
-            $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
-            config(['database.connections.dynamic.database' => $dbName]);
+            if (!config('filament-tenancy.single_database')) {
+                $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+                config(['database.connections.dynamic.database' => $dbName]);
+            }
             DB::purge('dynamic');
 
             DB::connection('dynamic')->getPdo();
@@ -75,29 +75,31 @@ class CreateTenant extends CreateRecord
             throw new \Exception("Failed to connect to tenant database: {$dbName}");
         }
 
+        $data = [
+            'name' => $record->name,
+            'email' => $record->email,
+            'password' => $record->password,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
         $user = DB::connection('dynamic')
             ->table('users')
-            ->where('email', $record->email)
-            ->first();
-        if($user){
-            DB::connection('dynamic')
-                ->table('users')
-                ->where('email', $record->email)
-                ->update([
-                    "name" => $record->name,
-                    "email" => $record->email,
-                    "password" => $record->password,
-                ]);
+            ->where('email', $record->email);
+
+
+        if (config('filament-tenancy.single_database')) {
+            $user = $user->where('tenant_id', $record->id);
+
+            $data['tenant_id'] = $record->id;
         }
-        else {
-            DB::connection('dynamic')
-                ->table('users')
-                ->insert([
-                    "name" => $record->name,
-                    "email" => $record->email,
-                    "password" => $record->password,
-                ]);
-        }
+
+        $user->updateOrInsert(
+            [
+                'email' => $data['email'],
+            ],
+            $data,
+        );
 
         $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
     }
