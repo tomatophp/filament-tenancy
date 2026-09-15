@@ -2,25 +2,16 @@
 
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
-use Exception;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Support\Facades\FilamentView;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
 use TomatoPHP\FilamentTenancy\Models\Tenant;
-
-use function Filament\Support\is_app_url;
 
 class CreateTenant extends CreateRecord
 {
     protected static string $resource = TenantResource::class;
 
-    /**
-     * @throws Throwable
-     */
     protected function handleRecordCreation(array $data): Model
     {
         $record = parent::handleRecordCreation(collect($data)->except('domain')->toArray());
@@ -29,96 +20,32 @@ class CreateTenant extends CreateRecord
         return $record;
     }
 
-    public function create(bool $another = false): void
-    {
-        $this->authorizeAccess();
-
-        $this->callHook('beforeValidate');
-
-        $data = $this->form->getState();
-
-        $this->callHook('afterValidate');
-
-        $data = $this->mutateFormDataBeforeCreate($data);
-
-        $this->callHook('beforeCreate');
-
-        $this->record = $this->handleRecordCreation($data);
-
-        $this->form->model($this->getRecord())->saveRelationships();
-
-        $this->callHook('afterCreate');
-
-        $this->rememberData();
-
-        $this->getCreatedNotification()?->send();
-
-        if ($another) {
-            // Ensure that the form record is anonymized so that relationships aren't loaded.
-            $this->form->model($this->getRecord()::class);
-            $this->record = null;
-
-            $this->fillForm();
-
-            return;
-        }
-
-        $redirectUrl = $this->getRedirectUrl();
-
-        $record = $this->record;
-
-        try {
-            if (! config('filament-tenancy.single_database')) {
-                $dbName = config('tenancy.database.prefix').$record->id.config('tenancy.database.suffix');
-                config(['database.connections.dynamic.database' => $dbName]);
-            }
-            DB::purge('dynamic');
-
-            DB::connection('dynamic')->getPdo();
-        } catch (Exception $e) {
-            throw new Exception("Failed to connect to tenant database: {$dbName}");
-        }
-
-        $data = [
-            'name' => $record->name,
-            'email' => $record->email,
-            'password' => $record->password,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $user = DB::connection('dynamic')
-            ->table('users')
-            ->where('email', $record->email);
-
-        if (config('filament-tenancy.single_database')) {
-            $user = $user->where('tenant_id', $record->id);
-
-            $data['tenant_id'] = $record->id;
-        }
-
-        $user->updateOrInsert(
-            [
-                'email' => $data['email'],
-            ],
-            $data,
-        );
-
-        $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
-    }
-
     /**
-     * @throws Throwable
+     * Create the tenant owner inside the tenant context, so stancl resolves the tenant
+     * connection for every driver instead of a hand-configured "dynamic" connection.
      */
-    private function createTenantRecord(array $data)
+    protected function afterCreate(): void
     {
-        Log::info('Saving Tenant');
-        $record = new Tenant(collect($data)->except('domain')->toArray());
-        $record->saveOrFail();
-        Log::info('Saving Domains');
-        $record = $record::find($record->id);
-        $record->domains()->create(['domain' => collect($data)->get('domain')]);
+        /** @var Tenant $tenant */
+        $tenant = $this->getRecord();
 
-        return $record;
+        $tenant->run(function () use ($tenant): void {
+            $user = [
+                'name' => $tenant->name,
+                'email' => $tenant->email,
+                'password' => $tenant->password,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $match = ['email' => $tenant->email];
+
+            if (config('filament-tenancy.single_database')) {
+                $user['tenant_id'] = $tenant->getTenantKey();
+                $match['tenant_id'] = $tenant->getTenantKey();
+            }
+
+            DB::table('users')->updateOrInsert($match, $user);
+        });
     }
 }

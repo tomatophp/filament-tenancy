@@ -193,12 +193,12 @@ class RegisterDemo extends Component implements HasActions, HasForms
                         ->success()
                         ->send();
 
-                    return redirect()->route('verify.otp');
+                    return redirect()->route('tenancy.verify.otp');
 
                 } else {
                     session()->put('demo_user', json_encode($data));
 
-                    return redirect()->route('login.provider', ['provider' => $data['loginBy']]);
+                    return redirect()->route('tenancy.login.provider', ['provider' => $data['loginBy']]);
                 }
             });
     }
@@ -297,7 +297,7 @@ class RegisterDemo extends Component implements HasActions, HasForms
                     }
 
                 } else {
-                    return redirect()->route('login.provider', ['provider' => $data['loginBy']]);
+                    return redirect()->route('tenancy.login.provider', ['provider' => $data['loginBy']]);
                 }
             });
     }

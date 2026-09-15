@@ -2,12 +2,12 @@
 
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
-use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
 use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
+use TomatoPHP\FilamentTenancy\Models\Tenant;
 
 class EditTenant extends EditRecord
 {
@@ -27,47 +27,34 @@ class EditTenant extends EditRecord
         ];
     }
 
+    /**
+     * Keep the tenant owner in the tenant database in sync, matched on the email before the change.
+     */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $record = $this->getRecord();
+        /** @var Tenant $tenant */
+        $tenant = $this->getRecord();
 
-        $updateData = [
+        $user = [
             'name' => $data['name'],
             'email' => $data['email'],
+            'updated_at' => now(),
         ];
 
-        if (isset($data['password'])) {
-            $updateData['password'] = $data['password'];
+        if (filled($data['password'] ?? null)) {
+            $user['password'] = $data['password'];
         }
 
-        try {
-            if (! config('filament-tenancy.single_database')) {
-                $dbName = config('tenancy.database.prefix').$record->id.config('tenancy.database.suffix');
-                config(['database.connections.dynamic.database' => $dbName]);
+        $tenant->run(function () use ($tenant, $user): void {
+            $match = ['email' => $tenant->email];
+
+            if (config('filament-tenancy.single_database')) {
+                $user['tenant_id'] = $tenant->getTenantKey();
+                $match['tenant_id'] = $tenant->getTenantKey();
             }
-            DB::purge('dynamic');
 
-            DB::connection('dynamic')->getPdo();
-        } catch (Exception $e) {
-            throw new Exception("Failed to connect to tenant database: {$dbName}");
-        }
-
-        $user = DB::connection('dynamic')
-            ->table('users')
-            ->where('email', $record->email);
-
-        if (config('filament-tenancy.single_database')) {
-            $user = $user->where('tenant_id', $record->id);
-
-            $updateData['tenant_id'] = $record->id;
-        }
-
-        $user->updateOrInsert(
-            [
-                'email' => $record->email,
-            ],
-            $updateData,
-        );
+            DB::table('users')->updateOrInsert($match, $user);
+        });
 
         return $data;
     }
