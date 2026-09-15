@@ -29,6 +29,13 @@ Tenancy multi-database integration for FilamentPHP
 - [ ] Custom Theme For Tenant
 - [ ] Livewire Component For Register New Tenant
 
+## Version Compatibility
+
+| Plugin | Filament | Laravel | PHP |
+|--------|----------|---------|-----|
+| 1.x (`v3` branch) | 3.x | 10.x \| 11.x | 8.1+ |
+| 5.x | 5.x | 12.x \| 13.x | 8.2+ |
+
 ## Installation
 
 ```bash
@@ -70,37 +77,18 @@ use TomatoPHP\FilamentTenancy\FilamentTenancyAppPlugin;
 ->plugin(FilamentTenancyAppPlugin::make())
 ```
 
-now on your `config\database.php` add this code
+tenant databases are resolved by stancl/tenancy from `config/tenancy.php` (published by the install command), so you do not need an extra database connection. In multi-database mode the database user must be allowed to create databases.
+
+> [!NOTE]
+> Upgrading from 1.x: the `dynamic` connection in `config/database.php` is no longer used, you can remove it.
+
+new tenant databases are created and migrated with the migrations in `database/migrations/tenant`. To seed them, set a tenant seeder in `config/tenancy.php` (your application `DatabaseSeeder` is not run inside tenants)
 
 ```php
-    ...
-    'connections' => [
-        'dynamic' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-        ...
-    ],  
-```
-now run config:cache
-
-```php
-php artisan config:cache
+'seeder_parameters' => [
+    '--class' => \Database\Seeders\TenantSeeder::class,
+    '--force' => true,
+],
 ```
 
 on your `bootstrap\app.php` add this middleware

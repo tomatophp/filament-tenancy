@@ -4,14 +4,12 @@ namespace TomatoPHP\FilamentTenancy\Console;
 
 use Illuminate\Console\Command;
 use TomatoPHP\ConsoleHelpers\Traits\HandleFiles;
-use TomatoPHP\ConsoleHelpers\Traits\RunCommand;
 
 use function Laravel\Prompts\select;
 
 class FilamentTenancyInstall extends Command
 {
     use HandleFiles;
-    use RunCommand;
 
     /**
      * The name and signature of the console command.
@@ -27,17 +25,10 @@ class FilamentTenancyInstall extends Command
      */
     protected $description = 'install package and publish assets';
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Execute the console command.
-     *
-     * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         if (! $this->option('multiple') && ! $this->option('single')) {
             $connectionType = select(
@@ -52,14 +43,13 @@ class FilamentTenancyInstall extends Command
             $connectionType = $this->option('multiple') ? 'multiple' : 'single';
         }
 
-        $this->info('Publish Vendor Assets');
+        $this->info('Running migrations');
+        $this->call('migrate', ['--force' => true]);
 
-        $this->callSilent('optimize:clear');
-
-        $this->artisanCommand(['migrate']);
+        $this->info('Publishing tenancy files');
 
         $this->copyFile(
-            $connectionType == 'multiple' ? __DIR__.'/../../publish/config/tenancy.php' : __DIR__.'/../../publish/config/single.tenancy.php',
+            $connectionType === 'multiple' ? __DIR__.'/../../publish/config/tenancy.php' : __DIR__.'/../../publish/config/single.tenancy.php',
             config_path('tenancy.php')
         );
 
@@ -80,7 +70,8 @@ class FilamentTenancyInstall extends Command
             'folder'
         );
 
-        $this->artisanCommand(['optimize']);
         $this->info('Filament Tenancy installed successfully.');
+
+        return self::SUCCESS;
     }
 }

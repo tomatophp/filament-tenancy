@@ -28,15 +28,13 @@ class FilamentTenancyServiceProvider extends ServiceProvider
         return [
             // Tenant events
             Events\TenantCreated::class => [
-                JobPipeline::make([
+                JobPipeline::make(array_values(array_filter([
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
-                    Jobs\SeedDatabase::class,
-
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
-
-                ])->send(function (Events\TenantCreated $event) {
+                    // Seed only when a tenant seeder is configured: without --class the job runs the
+                    // application's DatabaseSeeder, which usually seeds central data and fails in a tenant.
+                    filled(config('tenancy.seeder_parameters.--class')) ? Jobs\SeedDatabase::class : null,
+                ])))->send(function (Events\TenantCreated $event) {
                     return $event->tenant;
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
