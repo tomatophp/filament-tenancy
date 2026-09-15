@@ -3,21 +3,19 @@
 namespace TomatoPHP\FilamentTenancy\Concerns\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 
 trait Immutable
 {
     public static function bootImmutable(): void
     {
         static::updating(function (Model $model) {
-            throw new \RuntimeException("The record is immutable and cannot be modified.");
+            throw new RuntimeException('The record is immutable and cannot be modified.');
         });
         static::deleting(function (Model $model) {
-            throw new \RuntimeException("The record is immutable and cannot be deleted.");
+            throw new RuntimeException('The record is immutable and cannot be deleted.');
         });
     }
-    public function hasImmutableTrait(): void
-    {
-    }
 
-
+    public function hasImmutableTrait(): void {}
 }

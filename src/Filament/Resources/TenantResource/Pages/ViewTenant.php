@@ -2,9 +2,9 @@
 
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
-use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
-use Filament\Actions;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
+use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
 
 class ViewTenant extends ViewRecord
 {
@@ -13,7 +13,7 @@ class ViewTenant extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 }

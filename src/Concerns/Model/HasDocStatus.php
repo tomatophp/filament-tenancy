@@ -2,9 +2,12 @@
 
 namespace TomatoPHP\FilamentTenancy\Concerns\Model;
 
-use TomatoPHP\FilamentTenancy\Contracts\DocStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
+use TomatoPHP\FilamentTenancy\Contracts\DocStatus;
 use TomatoPHP\FilamentTenancy\Models\DocumentCancellation;
 
 trait HasDocStatus
@@ -20,14 +23,14 @@ trait HasDocStatus
             }
         });
         static::updating(function (Model $model) {
-            if (!$model->isDraft()) {
-                throw new \RuntimeException('You can only update documents which are in draft mode.');
+            if (! $model->isDraft()) {
+                throw new RuntimeException('You can only update documents which are in draft mode.');
             }
         });
 
         static::deleting(function (Model $model) {
-            if (!$model->isDraft()) {
-                throw new \RuntimeException('You can only delete documents which are in draft mode.');
+            if (! $model->isDraft()) {
+                throw new RuntimeException('You can only delete documents which are in draft mode.');
             }
         });
     }
@@ -87,23 +90,28 @@ trait HasDocStatus
         if ($onlyIfDraft && ! $this->isDraft()) {
             return $this;
         }
-        if ($this->isDraft()) throw new \RuntimeException('Only Draft Documents can be Submitted.');
+        if ($this->isDraft()) {
+            throw new RuntimeException('Only Draft Documents can be Submitted.');
+        }
         $this->submitting();
         $this->doc_status = DocStatus::SUBMITTED;
         $this->submitted_by = auth()->id();
         $this->submitted_at = now();
         $this->saveQuietly();
         $this->submitted();
+
         return $this;
     }
 
     public function cancel(?string $reason = ''): static
     {
-        if (!$this->isSubmitted()) throw new \RuntimeException('Only Submitted Documents can be Cancelled.');
-        \DB::transaction(function () use ($reason) {
+        if (! $this->isSubmitted()) {
+            throw new RuntimeException('Only Submitted Documents can be Cancelled.');
+        }
+        DB::transaction(function () use ($reason) {
             $this->canceling($reason);
             $this->doc_status = DocStatus::CANCELLED;
-            $this->cancelled_by = \Auth::id();
+            $this->cancelled_by = Auth::id();
             $this->cancelled_at = now();
             $this->saveQuietly();
             // Create a Doc Cancellation log:

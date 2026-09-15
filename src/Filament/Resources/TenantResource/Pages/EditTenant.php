@@ -2,10 +2,12 @@
 
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
-use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
-use Filament\Actions;
+use Exception;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
+use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
 
 class EditTenant extends EditRecord
 {
@@ -14,12 +16,12 @@ class EditTenant extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('open')
+            Action::make('open')
                 ->label(trans('filament-tenancy::messages.actions.view'))
                 ->icon('heroicon-s-link')
-                ->url(fn($record) => request()->getScheme() . "://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/' . filament('filament-tenancy')->panel)
+                ->url(fn ($record) => request()->getScheme().'://'.$record->domains()->first()?->domain.'.'.config('filament-tenancy.central_domain').'/'.filament('filament-tenancy')->panel)
                 ->openUrlInNewTab(),
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->icon('heroicon-s-trash')
                 ->label(trans('filament-tenancy::messages.actions.delete')),
         ];
@@ -35,19 +37,19 @@ class EditTenant extends EditRecord
         ];
 
         if (isset($data['password'])) {
-            $updateData["password"] = $data['password'];
+            $updateData['password'] = $data['password'];
         }
 
         try {
-            if (!config('filament-tenancy.single_database')) {
-                $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+            if (! config('filament-tenancy.single_database')) {
+                $dbName = config('tenancy.database.prefix').$record->id.config('tenancy.database.suffix');
                 config(['database.connections.dynamic.database' => $dbName]);
             }
             DB::purge('dynamic');
 
             DB::connection('dynamic')->getPdo();
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to connect to tenant database: {$dbName}");
+        } catch (Exception $e) {
+            throw new Exception("Failed to connect to tenant database: {$dbName}");
         }
 
         $user = DB::connection('dynamic')

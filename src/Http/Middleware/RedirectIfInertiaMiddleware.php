@@ -12,6 +12,7 @@ class RedirectIfInertiaMiddleware
         if (class_exists('\Inertia\Inertia') && $request->inertia()) {
             return app('\Inertia\Inertia')::location($request->url());
         }
+
         return $next($request);
     }
 }

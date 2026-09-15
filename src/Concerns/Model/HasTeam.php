@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use TomatoPHP\FilamentTenancy\Models\Team;
-use function TomatoPHP\FilamentTenancy\framework;
+use TomatoPHP\FilamentTenancy\Support\Framework;
 
 trait HasTeam
 {
@@ -17,18 +17,19 @@ trait HasTeam
 
     public function hasTeamColumn(): bool
     {
-        return Schema::hasColumn($this->getModel()->getTable(),'team_id');
+        return Schema::hasColumn($this->getModel()->getTable(), 'team_id');
     }
+
     public static function bootHasTeam(): void
     {
         self::creating(function (Model $model) {
             $col = static::getTeamColumnName();
             if ($model->hasTeamColumn()) {
-                if (!$model->{$col}) {
+                if (! $model->{$col}) {
                     if (auth()->check()) {
                         $model->{$col} = auth()->user()->team?->id;
                     } else {
-                        $model->{$col} = framework()->defaultTeam()?->getAttribute('id');
+                        $model->{$col} = app(Framework::class)->defaultTeam()?->getAttribute('id');
                     }
                 }
             }
@@ -40,15 +41,15 @@ trait HasTeam
                 if (in_array($query->getModel()->getMorphClass(), static::getSharedModels())) {
                     return;
                 }
-                if ($this->hasTeamColumn()) {
+                if ($query->getModel()->hasTeamColumn()) {
                     $user = auth()->user();
                     if ($user) {
                         $query->whereBelongsTo($user->team)
                             ->orWhereNull('team_id')
-                            ->orWhere('team_id','=', framework()->defaultTeam()?->id);
-                    } else  {
+                            ->orWhere('team_id', '=', app(Framework::class)->defaultTeam()?->id);
+                    } else {
                         $query->whereNull('team_id')
-                            ->orWhere('team_id','=', framework()->defaultTeam()?->id);
+                            ->orWhere('team_id', '=', app(Framework::class)->defaultTeam()?->id);
                     }
                 }
             });
@@ -57,16 +58,20 @@ trait HasTeam
 
     public function team()
     {
-        if (!$this->hasTeamColumn()) return null;
+        if (! $this->hasTeamColumn()) {
+            return null;
+        }
+
         return $this->belongsTo(Team::class, $this->getTeamColumnName());
     }
 
     protected function initializeHasTeam()
     {
-//        $this->casts['is_cross_team'] = 'bool';
+        //        $this->casts['is_cross_team'] = 'bool';
     }
 
-    protected static function getSharedModels() {
-        return config('core.shared_team_models',[]);
+    protected static function getSharedModels()
+    {
+        return config('core.shared_team_models', []);
     }
 }

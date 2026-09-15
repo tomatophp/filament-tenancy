@@ -2,8 +2,8 @@
 
 namespace TomatoPHP\FilamentTenancy\Macros;
 
-use TomatoPHP\FilamentTenancy\Contracts\DocStatus;
 use Illuminate\Database\Schema\Blueprint;
+use TomatoPHP\FilamentTenancy\Contracts\DocStatus;
 
 class FrameworkColumns
 {
@@ -14,7 +14,6 @@ class FrameworkColumns
         $table->foreignId('submitted_by')->nullable()->constrained('users')->restrictOnDelete();
         $table->foreignId('cancelled_by')->nullable()->constrained('users')->restrictOnDelete();
         $table->foreignId('reversed_by')->nullable()->constrained('users')->nullOnDelete();
-
 
         $table->timestamp('submitted_at')->nullable();
         $table->timestamp('cancelled_at')->nullable();
@@ -30,7 +29,6 @@ class FrameworkColumns
     {
         $table->boolean('is_active')->default(true);
     }
-
 
     public static function dropAuditColumns(Blueprint $table): void
     {
@@ -53,7 +51,6 @@ class FrameworkColumns
     {
         $table->dropColumn('is_active');
     }
-
 
     public static function teamColumn(Blueprint $table): void
     {
@@ -78,34 +75,52 @@ class FrameworkColumns
 
     public static function frameworkColumns(
         Blueprint $table,
-        bool      $docStatus = true,
-        bool      $activeStatus = true,
-        bool      $audit = true,
-        bool      $team = true,
-        bool      $code = true
-    ): void
-    {
-        if ($code) $table->codeColumn();
-        if ($docStatus) $table->docStatusColumn();
-        if ($activeStatus) $table->activeStatusColumn();
-        if ($audit) $table->auditColumns();
-        if ($team) $table->teamColumn();
+        bool $docStatus = true,
+        bool $activeStatus = true,
+        bool $audit = true,
+        bool $team = true,
+        bool $code = true
+    ): void {
+        if ($code) {
+            $table->codeColumn();
+        }
+        if ($docStatus) {
+            $table->docStatusColumn();
+        }
+        if ($activeStatus) {
+            $table->activeStatusColumn();
+        }
+        if ($audit) {
+            $table->auditColumns();
+        }
+        if ($team) {
+            $table->teamColumn();
+        }
     }
 
     public static function dropFrameworkColumns(
         Blueprint $table,
-        bool      $docStatus = true,
-        bool      $activeStatus = true,
-        bool      $audit = true,
-        bool      $team = true,
-        bool      $code = true
-    ): void
-    {
-        if ($team) $table->dropTeamColumn();
-        if ($audit) $table->dropAuditColumns();
-        if ($activeStatus) $table->dropActiveStatusColumn();
-        if ($docStatus) $table->dropDocStatusColumn();
-        if ($code) $table->dropCodeColumn();
+        bool $docStatus = true,
+        bool $activeStatus = true,
+        bool $audit = true,
+        bool $team = true,
+        bool $code = true
+    ): void {
+        if ($team) {
+            $table->dropTeamColumn();
+        }
+        if ($audit) {
+            $table->dropAuditColumns();
+        }
+        if ($activeStatus) {
+            $table->dropActiveStatusColumn();
+        }
+        if ($docStatus) {
+            $table->dropDocStatusColumn();
+        }
+        if ($code) {
+            $table->dropCodeColumn();
+        }
     }
 
     public static function registerMacros(): void
@@ -125,7 +140,6 @@ class FrameworkColumns
         Blueprint::macro('dropActiveStatusColumn', function () {
             FrameworkColumns::dropActiveStatusColumn($this);
         });
-
 
         Blueprint::macro('auditColumns', function () {
             FrameworkColumns::auditColumns($this);

@@ -4,17 +4,16 @@ namespace TomatoPHP\FilamentTenancy\Livewire;
 
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Exception;
 use Filament\Actions\Action;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\InteractsWithFormActions;
 use Filament\Pages\SimplePage;
-use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use Livewire\Component;
+use stdClass;
 use TomatoPHP\FilamentTenancy\Models\Tenant;
 
 class RegisterOtp extends SimplePage
@@ -22,33 +21,34 @@ class RegisterOtp extends SimplePage
     use InteractsWithFormActions;
     use WithRateLimiting;
 
-    protected static string $view = 'filament-tenancy::livewire.register-otp';
+    protected string $view = 'filament-tenancy::livewire.register-otp';
 
     public array $data;
-    public \stdClass $user;
+
+    public stdClass $user;
+
     public string $otp;
 
     public function mount(): void
     {
-        if(!session()->has('demo_user') || !session()->has('demo_otp')){
+        if (! session()->has('demo_user') || ! session()->has('demo_otp')) {
             abort(404);
-        }
-        else {
+        } else {
             $this->user = json_decode(session()->get('demo_user'));
             $this->otp = session()->get('demo_otp');
         }
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             TextInput::make('otp')
                 ->label('OTP Code')
                 ->numeric()
                 ->maxLength(6)
                 ->autocomplete('current-password')
                 ->required()
-                ->extraInputAttributes(['tabindex' => 2])
+                ->extraInputAttributes(['tabindex' => 2]),
         ])->statePath('data');
     }
 
@@ -56,7 +56,7 @@ class RegisterOtp extends SimplePage
     {
         return Action::make('submitAction')
             ->label('Check')
-            ->action(function (){
+            ->action(function () {
                 $this->authenticate();
             });
     }
@@ -64,9 +64,10 @@ class RegisterOtp extends SimplePage
     protected function throwFailureOtpException(): never
     {
         throw ValidationException::withMessages([
-            'data.otp' => "otp not correct",
+            'data.otp' => 'otp not correct',
         ]);
     }
+
     public function authenticate()
     {
         try {
@@ -89,9 +90,7 @@ class RegisterOtp extends SimplePage
 
         $data = $this->form->getState();
 
-
-
-        if($data['otp'] != $this->otp){
+        if ($data['otp'] != $this->otp) {
             $this->throwFailureOtpException();
         }
 
@@ -100,8 +99,8 @@ class RegisterOtp extends SimplePage
             'id' => $this->user->id,
             'email' => $this->user->email,
             'phone' => $this->user->phone,
-            'packages'=> $this->user->packages,
-            'password'=> $this->user->password,
+            'packages' => $this->user->packages,
+            'password' => $this->user->password,
         ]);
 
         $record->domains()->create(['domain' => $this->user->domain]);
@@ -110,14 +109,14 @@ class RegisterOtp extends SimplePage
 
         $token = tenancy()->impersonate($record, 1, '/app', 'web');
 
-        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('app.domain') . '/login/url?token='.$token->token .'&email='. $record->email);
+        return redirect()->to('https://'.$record->domains[0]->domain.'.'.config('app.domain').'/login/url?token='.$token->token.'&email='.$record->email);
     }
 
     protected function getResendAction(): Action
     {
         return Action::make('getResendAction')
             ->requiresConfirmation()
-            ->form([
+            ->schema([
                 TextInput::make('email')
                     ->required()
                     ->email()
@@ -126,7 +125,7 @@ class RegisterOtp extends SimplePage
             ->link()
             ->label('Resend OTP')
             ->color('warning')
-            ->action(function (array $data){
+            ->action(function (array $data) {
                 try {
                     $this->rateLimit(5);
                 } catch (TooManyRequestsException $exception) {
@@ -151,19 +150,19 @@ class RegisterOtp extends SimplePage
 
                 try {
                     $embeds = [];
-                    $embeds['description'] = "your OTP is: ". $otp;
+                    $embeds['description'] = 'your OTP is: '.$otp;
                     $embeds['url'] = url('/otp');
 
                     $params = [
-                        'content' => "@" . $data->domain,
+                        'content' => '@'.$data->domain,
                         'embeds' => [
-                            $embeds
-                        ]
+                            $embeds,
+                        ],
                     ];
 
                     Http::post(config('services.discord.otp-webhook'), $params)->json();
 
-                }catch (\Exception $e){
+                } catch (Exception $e) {
                     Notification::make()
                         ->title('Something went wrong')
                         ->danger()
@@ -177,5 +176,4 @@ class RegisterOtp extends SimplePage
                     ->send();
             });
     }
-
 }

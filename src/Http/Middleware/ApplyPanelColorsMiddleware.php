@@ -15,6 +15,7 @@ class ApplyPanelColorsMiddleware
             'primary' => tenant()?->primary_color ?: Color::Indigo,
             'info' => tenant()?->secondary_color ?: Color::Amber,
         ]);
+
         return $next($request);
     }
 }

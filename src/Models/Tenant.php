@@ -3,7 +3,6 @@
 namespace TomatoPHP\FilamentTenancy\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use TomatoPHP\FilamentTenancy\Models\SocialAuth;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -47,9 +46,6 @@ class Tenant extends \Stancl\Tenancy\Database\Models\Tenant implements TenantWit
         ];
     }
 
-    /**
-     * @return HasMany
-     */
     public function social(): HasMany
     {
         return $this->hasMany(SocialAuth::class, 'tenant_id', 'id');

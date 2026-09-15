@@ -2,11 +2,22 @@
 
 declare(strict_types=1);
 
+use Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper;
+use Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper;
 use Stancl\Tenancy\Database\Models\Domain;
+use Stancl\Tenancy\Features\CrossDomainRedirect;
+use Stancl\Tenancy\Features\UniversalRoutes;
+use Stancl\Tenancy\Features\UserImpersonation;
+use Stancl\Tenancy\Features\ViteBundler;
+use Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager;
+use Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager;
+use Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager;
+use Stancl\Tenancy\UUIDGenerator;
+use TomatoPHP\FilamentTenancy\Models\Tenant;
 
 return [
-    'tenant_model' => \TomatoPHP\FilamentTenancy\Models\Tenant::class,
-    'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
+    'tenant_model' => Tenant::class,
+    'id_generator' => UUIDGenerator::class,
 
     'domain_model' => Domain::class,
 
@@ -15,7 +26,7 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => array_filter(array_merge([env('CENTRAL_DOMAIN','')], explode(',',env('CENTRAL_DOMAINS','')))),
+    'central_domains' => array_filter(array_merge([env('CENTRAL_DOMAIN', '')], explode(',', env('CENTRAL_DOMAINS', '')))),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
@@ -24,10 +35,10 @@ return [
      * To configure their behavior, see the config keys below.
      */
     'bootstrappers' => [
-//        Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-//        Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
+        //        Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
+        //        Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
+        FilesystemTenancyBootstrapper::class,
+        QueueTenancyBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
 
@@ -54,20 +65,20 @@ return [
          * TenantDatabaseManagers are classes that handle the creation & deletion of tenant databases.
          */
         'managers' => [
-            'sqlite' => Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager::class,
-            'mysql' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
-            'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
+            'sqlite' => SQLiteDatabaseManager::class,
+            'mysql' => MySQLDatabaseManager::class,
+            'pgsql' => PostgreSQLDatabaseManager::class,
 
-            /**
-             * Use this database manager for MySQL to have a DB user created for each tenant database.
-             * You can customize the grants given to these users by changing the $grants property.
-             */
+        /**
+         * Use this database manager for MySQL to have a DB user created for each tenant database.
+         * You can customize the grants given to these users by changing the $grants property.
+         */
             // 'mysql' => Stancl\Tenancy\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class,
 
-            /**
-             * Disable the pgsql manager above, and enable the one below if you
-             * want to separate tenant DBs by schemas rather than databases.
-             */
+        /**
+         * Disable the pgsql manager above, and enable the one below if you
+         * want to separate tenant DBs by schemas rather than databases.
+         */
             // 'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLSchemaManager::class, // Separate by schema instead of database
         ],
     ],
@@ -159,12 +170,12 @@ return [
      * understand which ones you want to enable.
      */
     'features' => [
-        Stancl\Tenancy\Features\UserImpersonation::class,
+        UserImpersonation::class,
         // Stancl\Tenancy\Features\TelescopeTags::class,
-        Stancl\Tenancy\Features\UniversalRoutes::class,
+        UniversalRoutes::class,
         // Stancl\Tenancy\Features\TenantConfig::class, // https://tenancyforlaravel.com/docs/v3/features/tenant-config
-        Stancl\Tenancy\Features\CrossDomainRedirect::class, // https://tenancyforlaravel.com/docs/v3/features/cross-domain-redirect
-        Stancl\Tenancy\Features\ViteBundler::class,
+        CrossDomainRedirect::class, // https://tenancyforlaravel.com/docs/v3/features/cross-domain-redirect
+        ViteBundler::class,
     ],
 
     /**

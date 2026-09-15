@@ -2,13 +2,16 @@
 
 namespace TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
 
-use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
+use Exception;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use TomatoPHP\FilamentTenancy\Models\Tenant;
+use Illuminate\Support\Facades\Log;
 use Throwable;
+use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource;
+use TomatoPHP\FilamentTenancy\Models\Tenant;
+
 use function Filament\Support\is_app_url;
 
 class CreateTenant extends CreateRecord
@@ -22,6 +25,7 @@ class CreateTenant extends CreateRecord
     {
         $record = parent::handleRecordCreation(collect($data)->except('domain')->toArray());
         $record->domains()->create(['domain' => collect($data)->get('domain')]);
+
         return $record;
     }
 
@@ -64,15 +68,15 @@ class CreateTenant extends CreateRecord
         $record = $this->record;
 
         try {
-            if (!config('filament-tenancy.single_database')) {
-                $dbName = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+            if (! config('filament-tenancy.single_database')) {
+                $dbName = config('tenancy.database.prefix').$record->id.config('tenancy.database.suffix');
                 config(['database.connections.dynamic.database' => $dbName]);
             }
             DB::purge('dynamic');
 
             DB::connection('dynamic')->getPdo();
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to connect to tenant database: {$dbName}");
+        } catch (Exception $e) {
+            throw new Exception("Failed to connect to tenant database: {$dbName}");
         }
 
         $data = [
@@ -80,13 +84,12 @@ class CreateTenant extends CreateRecord
             'email' => $record->email,
             'password' => $record->password,
             'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
 
         $user = DB::connection('dynamic')
             ->table('users')
             ->where('email', $record->email);
-
 
         if (config('filament-tenancy.single_database')) {
             $user = $user->where('tenant_id', $record->id);
@@ -104,18 +107,18 @@ class CreateTenant extends CreateRecord
         $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
     }
 
-
     /**
      * @throws Throwable
      */
     private function createTenantRecord(array $data)
     {
-        \Log::info("Saving Tenant");
+        Log::info('Saving Tenant');
         $record = new Tenant(collect($data)->except('domain')->toArray());
         $record->saveOrFail();
-        \Log::info("Saving Domains");
+        Log::info('Saving Domains');
         $record = $record::find($record->id);
         $record->domains()->create(['domain' => collect($data)->get('domain')]);
+
         return $record;
     }
 }

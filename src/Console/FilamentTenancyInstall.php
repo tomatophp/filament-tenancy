@@ -10,8 +10,8 @@ use function Laravel\Prompts\select;
 
 class FilamentTenancyInstall extends Command
 {
-    use RunCommand;
     use HandleFiles;
+    use RunCommand;
 
     /**
      * The name and signature of the console command.
@@ -56,31 +56,31 @@ class FilamentTenancyInstall extends Command
 
         $this->callSilent('optimize:clear');
 
-        $this->artisanCommand(["migrate"]);
+        $this->artisanCommand(['migrate']);
 
         $this->copyFile(
-            $connectionType == 'multiple' ? __DIR__ .'/../../publish/config/tenancy.php' : __DIR__ .'/../../publish/config/single.tenancy.php',
+            $connectionType == 'multiple' ? __DIR__.'/../../publish/config/tenancy.php' : __DIR__.'/../../publish/config/single.tenancy.php',
             config_path('tenancy.php')
         );
 
         $this->copyFile(
-            __DIR__ .'/../../publish/routes/tenant.php',
+            __DIR__.'/../../publish/routes/tenant.php',
             base_path('routes/tenant.php')
         );
 
         $this->copyFile(
-            __DIR__ .'/../../publish/resources/views/components',
+            __DIR__.'/../../publish/resources/views/components',
             resource_path('views/components'),
             'folder'
         );
 
         $this->copyFile(
-            __DIR__ .'/../../publish/database/migrations/tenant',
+            __DIR__.'/../../publish/database/migrations/tenant',
             database_path('migrations/tenant'),
             'folder'
         );
 
-        $this->artisanCommand(["optimize"]);
+        $this->artisanCommand(['optimize']);
         $this->info('Filament Tenancy installed successfully.');
     }
 }

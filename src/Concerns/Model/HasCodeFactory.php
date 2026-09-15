@@ -5,12 +5,11 @@ namespace TomatoPHP\FilamentTenancy\Concerns\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use TomatoPHP\FilamentTenancy\Models\CodeFactory;
 
 trait HasCodeFactory
 {
+    abstract public function getCodePrefix();
 
-    public abstract function getCodePrefix();
     public static function getCodeColumnName(): string
     {
         return 'code';
@@ -35,6 +34,7 @@ trait HasCodeFactory
     {
         return Schema::hasColumn($this->getModel()->getTable(), static::getCodeColumnName());
     }
+
     public static function bootHasCodeFactory(): void
     {
         static::creating(function (Model $model) {
@@ -45,21 +45,23 @@ trait HasCodeFactory
                 }
             }
         });
-        static::created(function(Model $model) {
+        static::created(function (Model $model) {
             if ($model->hasCodeColumn()) {
                 if (Str::isUuid($model->getAttribute(static::getCodeColumnName()))) {
-                    $model = $model::withoutGlobalScopes()->where('id','=', $model->getAttribute('id'))->firstOrFail();
+                    $model = $model::withoutGlobalScopes()->where('id', '=', $model->getAttribute('id'))->firstOrFail();
                     $model->updateQuietly([static::getCodeColumnName() => $model->calculated_code]);
                 }
             }
         });
     }
+
     public function getCalculatedCodeAttribute(): string
     {
-        $code = Str::of($this->id)->padLeft($this->getCodePadLength() ?: 2,$this->getCodePadString() ?: '0');
-        if (!$this->shouldOmitPrefix()) {
+        $code = Str::of($this->id)->padLeft($this->getCodePadLength() ?: 2, $this->getCodePadString() ?: '0');
+        if (! $this->shouldOmitPrefix()) {
             $code = $code->prepend($this->getCodePrefix())->upper();
         }
+
         return $code->toString();
     }
 }

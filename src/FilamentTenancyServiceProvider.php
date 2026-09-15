@@ -2,17 +2,17 @@
 
 namespace TomatoPHP\FilamentTenancy;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Stancl\JobPipeline\JobPipeline;
-use Stancl\Tenancy\Events\SyncedResourceChangedInForeignDatabase;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
+use TomatoPHP\FilamentTenancy\Console\FilamentTenancyInstall;
 use TomatoPHP\FilamentTenancy\Macros\FrameworkColumns;
 use TomatoPHP\FilamentTenancy\View\Components\ApplicationLogo;
 
@@ -20,11 +20,9 @@ class FilamentTenancyServiceProvider extends ServiceProvider
 {
     // By default, no namespace is used to support the callable array syntax.
     public static string $controllerNamespace = '';
+
     const TENANCY_IDENTIFICATION = Middleware\InitializeTenancyByDomain::class;
 
-    /**
-     * @return array
-     */
     public function databaseEvents(): array
     {
         return [
@@ -73,47 +71,47 @@ class FilamentTenancyServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //Register generate command
+        // Register generate command
         $this->commands([
-           \TomatoPHP\FilamentTenancy\Console\FilamentTenancyInstall::class,
+            FilamentTenancyInstall::class,
         ]);
 
-        //Register Config file
+        // Register Config file
         $this->mergeConfigFrom(__DIR__.'/../config/filament-tenancy.php', 'filament-tenancy');
 
-        //Publish Config
+        // Publish Config
         $this->publishes([
-           __DIR__.'/../config/filament-tenancy.php' => config_path('filament-tenancy.php'),
+            __DIR__.'/../config/filament-tenancy.php' => config_path('filament-tenancy.php'),
         ], 'filament-tenancy-config');
 
-        if (!config('filament-tenancy.single_database')) {
-            //Register Migrations
+        if (! config('filament-tenancy.single_database')) {
+            // Register Migrations
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-            //Publish Migrations
+            // Publish Migrations
             $this->publishes([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'filament-tenancy-migrations');
         }
 
-        //Register views
+        // Register views
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'filament-tenancy');
 
-        //Publish Views
+        // Publish Views
         $this->publishes([
-           __DIR__.'/../resources/views' => resource_path('views/vendor/filament-tenancy'),
+            __DIR__.'/../resources/views' => resource_path('views/vendor/filament-tenancy'),
         ], 'filament-tenancy-views');
 
-        //Register Langs
+        // Register Langs
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'filament-tenancy');
 
-        //Publish Lang
+        // Publish Lang
         $this->publishes([
-           __DIR__.'/../resources/lang' => base_path('lang/vendor/filament-tenancy'),
+            __DIR__.'/../resources/lang' => base_path('lang/vendor/filament-tenancy'),
         ], 'filament-tenancy-lang');
 
-        //Register Routes
-//        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        // Register Routes
+        //        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
 
     }
 
@@ -129,16 +127,15 @@ class FilamentTenancyServiceProvider extends ServiceProvider
         FrameworkColumns::registerMacros();
 
         $this->loadViewComponentsAs('tomato', [
-            ApplicationLogo::class
+            ApplicationLogo::class,
         ]);
     }
 
     protected function bootEvents()
     {
-        $events = !config('filament-tenancy.single_database', false)
+        $events = ! config('filament-tenancy.single_database', false)
             ? array_merge($this->databaseEvents(), $this->defaultEvents())
             : $this->defaultEvents();
-
 
         foreach ($events as $event => $listeners) {
             foreach ($listeners as $listener) {
@@ -175,22 +172,22 @@ class FilamentTenancyServiceProvider extends ServiceProvider
         ];
 
         foreach (array_reverse($tenancyMiddleware) as $middleware) {
-            $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
+            $this->app[Kernel::class]->prependToMiddlewarePriority($middleware);
         }
     }
 
     private function prepareLivewireForTenancy(): void
     {
-        if(request()->host() !== config('filament-tenancy.central_domain')){
+        if (request()->host() !== config('filament-tenancy.central_domain')) {
 
-            Livewire::setUpdateRoute(function ($handle) {
-                return Route::post('/livewire/update', $handle)
+            Livewire::setUpdateRoute(function ($handle, $path) {
+                return Route::post($path, $handle)
                     ->middleware(
                         [
                             'web',
                             'universal',
                             static::TENANCY_IDENTIFICATION,
-                        ])->name('livewire.update');
+                        ]);
             });
         }
     }

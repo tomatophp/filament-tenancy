@@ -10,8 +10,6 @@ class CreateTenantsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
@@ -22,10 +20,10 @@ class CreateTenantsTable extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
 
-            //Login
+            // Login
             $table->string('password')->nullable();
 
-            //OTP
+            // OTP
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_code_active_at')->nullable();
 
@@ -39,8 +37,6 @@ class CreateTenantsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {
