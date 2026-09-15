@@ -13,10 +13,12 @@ Tenancy multi-database integration for FilamentPHP
 
 ## Screenshots
 
-![Tenants](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/tenants.png)
-![Create](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/create.png)
-![Edit](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/edit.png)
-![Password](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/password.png)
+![Tenants](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/tenants-light.png)
+![Tenants Dark](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/tenants-dark.png)
+![Create](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/create-light.png)
+![Edit](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/edit-dark.png)
+![Password](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/password-light.png)
+![Password Dark](https://raw.githubusercontent.com/tomatophp/filament-tenancy/master/arts/password-dark.png)
 
 ## Features
 
