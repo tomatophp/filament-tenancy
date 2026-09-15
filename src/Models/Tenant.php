@@ -2,14 +2,19 @@
 
 namespace TomatoPHP\FilamentTenancy\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
+use TomatoPHP\FilamentTenancy\Database\Factories\TenantFactory;
 
-class Tenant extends \Stancl\Tenancy\Database\Models\Tenant implements TenantWithDatabase
+class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains;
+    use HasDatabase;
+    use HasDomains;
+    use HasFactory;
 
     protected $fillable = [
         'id',
@@ -50,5 +55,10 @@ class Tenant extends \Stancl\Tenancy\Database\Models\Tenant implements TenantWit
     public function social(): HasMany
     {
         return $this->hasMany(SocialAuth::class, 'tenant_id', 'id');
+    }
+
+    protected static function newFactory(): TenantFactory
+    {
+        return TenantFactory::new();
     }
 }

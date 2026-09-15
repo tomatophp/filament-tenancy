@@ -15,7 +15,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "TomatoPHP\\FilamentTenancy\\": "src/"
+            "TomatoPHP\\FilamentTenancy\\": "src/",
+            "TomatoPHP\\FilamentTenancy\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
