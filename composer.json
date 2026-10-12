@@ -2,6 +2,12 @@
     "name": "tomatophp/filament-tenancy",
     "type": "library",
     "description": "Tenancy multi-database integration for FilamentPHP",
+    "homepage": "https://tomatophp.com/en/plugins/filament-tenancy",
+    "support": {
+        "issues": "https://github.com/tomatophp/filament-tenancy/issues",
+        "source": "https://github.com/tomatophp/filament-tenancy",
+        "docs": "https://tomatophp.com/en/plugins/filament-tenancy"
+    },
     "keywords": [
         "php",
         "laravel",
